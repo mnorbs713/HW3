@@ -74,18 +74,15 @@ if __name__ == "__main__":
 
     url = "https://nba-team-stats.p.rapidapi.com/teamStats"
     headers = {
-	     "X-RapidAPI-Key": "6d0eed541cmsh7ff9a881cf8927bp1882dfjsn193c7fb63a4d",
+	     "X-RapidAPI-Key": "239f222809msha2e4818a47c0fdfp19a3e4jsna22b27732628",
 	     "X-RapidAPI-Host": "nba-team-stats.p.rapidapi.com"
     }
     data_dict = {}
     api_client = APIStuff(url)
-    
-    i  = ["2019", "2020", "2021", "2022", "2023"]
-    
     if len(data_dict) == 0:
-        for i in i:
-            params = {"leagueYear":i,"team":"76ers"}
-            data_dict[i] = api_client.get_data(headers,params)
+        for i in range(2019,2024):
+           params = {"leagueYear":str(i),"team":"76ers"}
+           data_dict[i] = api_client.get_data(headers,params)
         
         
     host = 'redis-16990.c282.east-us-mz.azure.cloud.redislabs.com'
@@ -101,5 +98,11 @@ if __name__ == "__main__":
     for key in key_list: 
         redis_dict[key] = redis_client.get_json(key)
 
+    keys = list(redis_dict.keys())
+    leagueyear_values  = [redis_dict[key].get('leagueYear',None)for key in keys]
+    point_values = [redis_dict[key]["stats"]["Philadelphia 76ers"]["Per Game"].get('PTS',None)for key in keys]
+    df = pd.DataFrame({'year': leagueyear_values, 'Pointspergame': point_values})
+
+    plt.plot(df['year'], df['Pointspergame'], marker = 'o')
     
 print("Done")
